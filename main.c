@@ -15,7 +15,8 @@ int main (int argc, char *argv[]){
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    MPI_Datatype chunktype; 
+    MPI_Datatype chunktype;
+    create_chunk_datatype(&chunktype);
 
     // controllo che il numero di processi sia almeno maggiore o uguale a due 
     // se non ci sono più di due processi non ha senso parallelizzare

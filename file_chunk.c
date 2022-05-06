@@ -20,17 +20,23 @@ void create_chunk_datatype(MPI_Datatype *chunktype){
     MPI_Datatype oldtypes[3];
     int blockcounts[3];
 
-    MPI_Aint    offsets[2], lb, extent;
+    MPI_Aint    offsets[3], lb, extent;
 
     offsets[0] = 0;
     oldtypes[0] = MPI_DOUBLE;
     blockcounts[0] = 2;
-/*
+
     MPI_Type_get_extent(MPI_DOUBLE, &lb, &extent);
     offsets[1] = 2 * extent;
     oldtypes[1] = MPI_CHAR;
-    blockcounts[1] = 2;
-*/
+    blockcounts[1] = 260;
 
+    MPI_Type_get_extent(MPI_CHAR, &lb, &extent);
+    offsets[2] = 260 * extent;
+    oldtypes[2] = MPI_INT;
+    blockcounts[2] = 1;
+
+    MPI_Type_create_struct(3, blockcounts, offsets, oldtypes, chunktype);
+    MPI_Type_commit(chunktype);
 
 }
