@@ -15,8 +15,9 @@ File_inf * get_file_info(char * file_path){
 
     if(stat(file_path, &sb) != -1){
         file->total_size = sb.st_size;
-        file->path = malloc(sizeof(char) * strlen(file_path) +1);
-        strncpy(file->path ,file_path , strlen(file_path));
+        file->path = malloc(sizeof(char) * strlen(file_path) + 1);
+        strncpy(file->path ,file_path , strlen(file_path)+1);
+        //snprintf(file_path, strlen(file_path) + 1, const char *format, …);
     }
 
     return file;
@@ -55,11 +56,13 @@ GList * get_files_info_from_dir(char * dir_paths, double *files_size){
         {
             if(dir-> d_type != DT_DIR){
 
+                char end_word = '\0';
+
                 //creo la path assoluta del file per ottenere le informazioni
                 strncpy(file_path, dir_paths, 260);
                 strncat(file_path, path_sep, 2);
                 strncat(file_path, dir->d_name, strlen(dir->d_name));
-        
+            
                 temp_info = get_file_info(file_path);
                 *files_size += temp_info->total_size;
                 
@@ -78,5 +81,4 @@ GList * get_files_info_from_dir(char * dir_paths, double *files_size){
     return list;
 
 }
-
 
