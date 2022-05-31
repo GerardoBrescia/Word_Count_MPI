@@ -280,21 +280,70 @@ Come suggerito dalla documentazione, che afferma :
 
 Si è deciso di allocare la memoria dinamicamente utilizzando la funzione di allocazione messa a disposizione da MPI.
 
+## Correttezza dell'applicativo
+
+La correttezza del programma è stata provata empiricamente fornendo in input al programma cartelle contenenti file di piccole dimensioni controllabili senza servirsi di automatismi (ad esempio la directory parole contenuta all'interno di questo progetto).
+
+Per i file più grandi utilizzati per testare il programma per evitare un conteggio manuale delle parole ci si è serviti di un word counter online (https://wordcounter.net/).
+
+Per verifiare che aumentando il numero di processori utilizzati il programma non abbia comportamenti inaspettati, è stato realizzato lo script correctness.sh che esegue il programma prima con 2,5,10.15,20... e così via processori fino ad arrivare a 100. Lo script verifica che aumentando il numero di processori ò'output del programma non cambia.
+
+
+
+## Benchmarking
+
+I test per la valutazione della scalabilità sia forte che debole sono stati eseguiti su di un cluster di 6 macchine in Google Cloud dotate di 4 vCPU e 16GB di RAM.
+Per i test è stato utilizzata la cartella banchmark contenuta all'interno della cartella test
+
+
+
+
 ## Manuale d'uso
 
 ### Compilazione
 
-Per poter compilare occorre prima installare alcune dipendenze eseguendo il comando:
+Per poter compilare occorre prima installare alcune dipendenze, spostandosi all'interno della directory src ed eseguendo il comando:
 
 ```
 ./install.sh
 ```
+Al termine dell'esecuzione di questo script, verrà installata la libreria libglib2.0 che implementa tutte le strutture dati utilizzate all'interno del progetto.
 
-Per compilare, all'interno della directory root del progetto basta digitare il comando: 
+Una volta installate le dipendenze è possibile compilare, all'interno della directory src del progetto basta digitare il comando: 
 ```
 make all
 ```
 
 ### Esecuzione locale
 
-All'interno de
+Per eseguire localmente il programma, all'interno della directory src, occorre utilizzare il seguente comando:
+
+```
+mpirun -np NUMERO_DI_PROCESSORI count.out DIRECTORY
+```
+
+- NUMERO_DI_PROCESSORI
+
+Il numero di processori che MPI utilizzerà per l'esecuzione.
+
+- DIRECTORY
+
+La directory contenente tutti i file sui quali effettuare il conteggio delle parole. Questo parametro non può essere omesso.
+
+### Esecuzione remota
+
+IL seguente comando permette l'esecuzione remota:
+
+mpirun -np NUMERO_DI_PROCESSORI --hostfile HOSTFILE ./count.out DIRECTORY
+
+- NUMERO_DI_PROCESSORI
+
+Il numero di processori che MPI utilizzerà per l'esecuzione.
+
+- HOSTFILE
+
+File all'interno del quale è specificato, per ogni macchina, l'indirizzo IP ed il numero di ....... .
+
+- DIRECTORY
+
+La directory contenente tutti i file sui quali effettuare il conteggio delle parole. Questo parametro non può essere omesso.
