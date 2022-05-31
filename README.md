@@ -19,7 +19,7 @@ L'algoritmo opera come segue:
 
 2. Il processo MASTER divide i file in maniera equa considerando la loro grandezza in byte (evitando quindi di scorrerli per effettuare la divisione). Invia ad ogni processo una o più partizioni, come quella descritta di seguito: 
 
-    <img src="docs/Partizione.jpg" alt="esempio schermata nuovo membro" width = "50%" height = "50%">
+    <img src="docs/Partizione.jpg" alt="esempio di partizione" width = "50%" height = "50%">
 
 
     - IL campo FILE indica a quale file appartiene la partizione. 
@@ -156,7 +156,7 @@ Una volta ricevuti i propri chunk, ogni processo inizia il conteggio preoccupand
 Processi diversi possono ricevere chunk diversi ma che dividono lo stesso file. Siccome i chunk sono calcolati solo sulla base delle dimensioni, può accadere che una parola sia spezzata tra due chunk.
 
 
-<img src="docs/ca-ndela.jpg" alt="esempio schermata nuovo membro" width = "50%" height = "50%">
+<img src="docs/ca-ndela.jpg" alt="esempio gestione parola cross chunk" width = "50%" height = "50%">
 
 Questo problema è stato risolto evitando comunicazioni ulteriori tra i processi, le quali introdurrebbero un importante overhead.
 Ogni processo è libero di andare oltre la fine del proprio chunk per completare la lettura della parola.
@@ -316,7 +316,7 @@ make all
 
 ### Esecuzione locale
 
-Per eseguire localmente il programma, all'interno della directory src, occorre utilizzare il seguente comando:
+Per eseguire localmente il programma, all'interno della directory **src**, occorre utilizzare il seguente comando:
 
 ```
 mpirun -np NUMERO_DI_PROCESSORI count.out DIRECTORY
