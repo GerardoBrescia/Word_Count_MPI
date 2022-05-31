@@ -1,13 +1,13 @@
 # :a: Word_Count_MPI
 
-Word_Count_MPI è un'implementazione parallela di word count per il conteggio delle parole. Il conteggio delle parole è una pratica molto diffusa, soprattutto quando un testo deve rimanere entro un numero specifico di parole.
+**Word_Count_MPI** è un'implementazione parallela di word count per il conteggio delle parole. Il conteggio delle parole è una pratica molto diffusa, soprattutto quando un testo deve rimanere entro un numero specifico di parole.
 
 ## Descrizione del problema
 
 Il problema deve essere risolto con una versione di map-reduce usando MPI. L'obiettivo è quello di eseguire velocemente il conteggio delle parole su un gran numero di file:
 
-Il MASTER dovrà leggere tutti i file all'interno di una directory. Ognuno degli altri processi dovrà ricevere la propria porzione sul totale di tutti i file dal processo MASTER. Una volta che un processo ha ricevuto la propria porzione dovrà effettuare su di essa un conteggio delle parole, per tenere traccia della frequenza di ogni parola trovata.
-Tutti i processi svilupperanno un istogramma locale, le frequenze elaborate da ogni processo dovranno poi essere unite dal MASTER che ricevendo gli istogrammi da ognuno dei processi SLAVE dovrà unirli. Infine, il master produrrà un file CSV contenente le frequenze ordinate.
+Il **MASTER** dovrà leggere tutti i file all'interno di una directory. Ognuno degli altri processi dovrà ricevere la propria porzione sul totale di tutti i file dal processo **MASTER**. Una volta che un processo ha ricevuto la propria porzione dovrà effettuare su di essa un conteggio delle parole, per tenere traccia della frequenza di ogni parola trovata.
+Tutti i processi svilupperanno un istogramma locale, le frequenze elaborate da ogni processo dovranno poi essere unite dal **MASTER**, che ricevendo gli istogrammi da ognuno dei processi **SLAVE** dovrà effettuare un merge. Infine, il master produrrà un file CSV contenente le frequenze ordinate.
 
 ## Soluzione del problema
 
@@ -15,24 +15,24 @@ L'aspetto più complicato del problema è quello di dividere in maniera equa la 
 
 L'algoritmo opera come segue:
 
-1. Il processo MASTER riceve in input da linea di comando una cartella contenete tutti i file sui quali effettuare il conteggio delle parole.
+1. Il processo **MASTER** riceve in input da linea di comando una cartella contenete tutti i file sui quali effettuare il conteggio delle parole.
 
-2. Il processo MASTER divide i file in maniera equa considerando la loro grandezza in byte (evitando quindi di scorrerli per effettuare la divisione). Invia ad ogni processo una o più partizioni, come quella descritta di seguito: 
+2. Il processo **MASTER** divide i file in maniera equa considerando la loro grandezza in byte (evitando quindi di scorrerli per effettuare la divisione). Invia ad ogni processo una o più partizioni, come quella descritta di seguito: 
 
     <img src="docs/Partizione.jpg" alt="esempio di partizione" width = "50%" height = "50%">
 
 
-    - IL campo FILE indica a quale file appartiene la partizione. 
-    - Il campo BYTE DI INIZIO indica il byte all'interno del file da cui la partizione inizia.
-    - Il campo BYTE DI FINE indica il byte all'interno del file in cui la partizione finisce.
+    - IL campo **FILE** indica a quale file appartiene la partizione. 
+    - Il campo **BYTE DI INIZIO** indica il byte all'interno del file da cui la partizione inizia.
+    - Il campo **BYTE DI FINE** indica il byte all'interno del file in cui la partizione finisce.
 
 Ogni processo riceve un numero variabile di partizioni di dimensioni diverse ma, ogni processo lavora su un totale di byte uguale a quello degli altri. La somma delle dimensioni delle partizioni ricevute sarà uguale per ogni processo. 
 
-3. I processi SLAVE ricevono la propria porzione ed inziano ad effettuare il conteggio delle parole, contandone la frequenza. 
+3. I processi **SLAVE** ricevono la propria porzione di file ed inziano ad effettuare il conteggio delle parole, contandone la frequenza. 
 
-4. Le frequenze calcolate sono inviate dagli SLAVE al MASTER.
+4. Le frequenze calcolate sono inviate dagli **SLAVE** al **MASTER**.
 
-5. IL MASTER riceve le frequenze da tutti gli altri processi unendole. Per concludere produce un file csv con all'interno il conteggio esatto delle parole. 
+5. IL **MASTER** riceve le frequenze da tutti gli altri processi unendole. Per concludere produce un file **csv** con all'interno il conteggio esatto delle parole. 
 
 ## Input del programma
 
@@ -111,9 +111,9 @@ La documentazione raccomanda di non modificare il buffer inviato finchè non si 
 >"The sender should not modify any part of the send buffer after a nonblocking send operation is called,   
 >until the send completes" 
 
-Per questo motivo per ogni SLAVE viene allocato un apposito buffer.
+Per questo motivo per ogni **SLAVE** viene allocato un apposito buffer.
 
-Una volta inviati tutti i chunk, il MASTER attende che tutte le operazioni di invio siano completate. A questo punto può deallocare tutti buffer che non servono più e che sono stati allocati dinamicamente.
+Una volta inviati tutti i chunk, il **MASTER** attende che tutte le operazioni di invio siano completate. A questo punto può deallocare tutti buffer che non servono più e che sono stati allocati dinamicamente.
 
 ```
 MPI_Waitall(numtasks - 1, reqs , MPI_STATUSES_IGNORE);
@@ -141,18 +141,18 @@ File_chunk * probe_recv_chunks(MPI_Datatype chunktype, MPI_Status Stat, int * ch
     return chunks_to_recv;
 }
 ```
-Il processo SLAVE che riceve il messaggio non conosce la grandezza del buffer inviato, questa informazione è fondamentale per l'allocazione di un buffer di ricezione grande esattamente come quello inviato dal MASTER, in modo tale da non avere spreco di memoria.
+Il processo SLAVE che riceve il messaggio non conosce la grandezza del buffer inviato, questa informazione è fondamentale per l'allocazione di un buffer di ricezione grande esattamente come quello inviato dal MASTER, in modo tale da non ecitare spreco di memoria.
 
-Per allocare con precisione ogni processo SLAVE:
+Per allocare con precisione, ogni processo SLAVE:
 
-1. Controlla il messaggio in arrivo, senza riceverlo effettivamente grazie alla funzione MPI_Probe (funzione bloccante).
+1. Controlla il messaggio in arrivo, senza riceverlo effettivamente grazie alla funzione **MPI_Probe** (funzione bloccante).
 2. In base alle informazioni restituite dalla sonda nella variabile di stato, il processo può ottenere il numero di elementi presenti all'interno dell'array inviato.
 3. Finalmente può allocare memoria per il buffer di ricezione, in base alla lunghezza del messaggio sondato.
 
 
 ### Conteggio all'interno dei chunk
 
-Una volta ricevuti i propri chunk, ogni processo inizia il conteggio preoccupandosi solo delle parole all'interno della porzione di file descritta da ogni chunk.
+Una volta ricevuti i propri chunk, ogni processo inizia il conteggio preoccupandosi solo delle parole all'interno della porzione di file descritta da ognuo dei suoi chunk.
 Processi diversi possono ricevere chunk diversi ma che dividono lo stesso file. Siccome i chunk sono calcolati solo sulla base delle dimensioni, può accadere che una parola sia spezzata tra due chunk.
 
 
