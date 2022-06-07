@@ -31,6 +31,11 @@ int main (int argc, char *argv[]){
 
     // controllo che il numero di processi sia almeno maggiore o uguale a due 
     // se non ci sono più di due processi non ha senso parallelizzare
+    if(argc<2){
+        MPI_Abort(MPI_COMM_WORLD, 910);
+        MPI_Finalize();
+        return 0;
+    }
     if (numtasks < 2){ 
             MPI_Abort(MPI_COMM_WORLD, 911);
             MPI_Finalize();

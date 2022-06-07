@@ -35,48 +35,6 @@ void create_chunk_datatype(MPI_Datatype *chunktype){
 
 }
 
-void pack_send_chunks(File_chunk * chunk_to_send, int chunk_count, MPI_Datatype chunktype, int receiver,  MPI_Request *req){
-
-    int  position = 0;
-    char outbuf [MAX_PACK_SIZE];
-
-    int size1, size2;
-    int uno = 1;
-
-    MPI_Pack_size(uno,
-                 MPI_INT,
-                 MPI_COMM_WORLD,
-                 &size1);
-
-    MPI_Pack_size(chunk_count,
-                 chunktype,
-                 MPI_COMM_WORLD,
-                 &size2);
-
-    MPI_Pack(&chunk_count, 1, MPI_INT, outbuf, MAX_PACK_SIZE, &position, MPI_COMM_WORLD);
-    MPI_Pack(chunk_to_send, chunk_count, chunktype, outbuf, MAX_PACK_SIZE, &position, MPI_COMM_WORLD);
-
-    MPI_Isend(outbuf, MAX_PACK_SIZE, MPI_PACKED, receiver, COMM_TAG, MPI_COMM_WORLD, &(req[receiver-1]));
-    
-}
-
-File_chunk * unpack_recv_chunks(MPI_Datatype chunktype, MPI_Status Stat, int * chunk_number){
-
-    char outbuf [MAX_PACK_SIZE];
-    int position = 0;
-    *chunk_number = 0;
-
-    MPI_Recv(outbuf, MAX_PACK_SIZE, MPI_PACKED, MASTER_RANK, COMM_TAG, MPI_COMM_WORLD, &Stat);
-    MPI_Unpack(outbuf, MAX_PACK_SIZE, &position, chunk_number, 1,
-	    MPI_INT, MPI_COMM_WORLD);
-
-    File_chunk * chunks_to_recv =(File_chunk *) malloc(sizeof(File_chunk ) * (*chunk_number));
-    MPI_Unpack(outbuf, MAX_PACK_SIZE, &position, chunks_to_recv, *chunk_number,
-	    chunktype, MPI_COMM_WORLD);
-
-    return chunks_to_recv;
-}
-
 File_chunk * probe_recv_chunks(MPI_Datatype chunktype, MPI_Status Stat, int * chunk_number){
 
     *chunk_number = 0;

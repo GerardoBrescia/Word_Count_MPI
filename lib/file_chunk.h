@@ -22,8 +22,4 @@ File_chunk* create_file_chunk(double start_offset , double end_offset, char * pa
 
 void create_chunk_datatype(MPI_Datatype *chunktype);
 
-void pack_send_chunks(File_chunk * chunk_to_send, int chunk_count, MPI_Datatype chunktype, int receiver, MPI_Request *req);
-
-File_chunk * unpack_recv_chunks(MPI_Datatype chunktype, MPI_Status Stat, int * chunk_number);
-
 File_chunk * probe_recv_chunks(MPI_Datatype chunktype, MPI_Status Stat, int * chunk_number);

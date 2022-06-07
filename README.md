@@ -22,9 +22,9 @@ L'algoritmo opera come segue:
     <img src="docs/Partizione.jpg" alt="esempio di partizione" width = "50%" height = "50%">
 
 
-    - IL campo FILE indica a quale file appartiene la partizione. 
-    - Il campo BYTE DI INIZIO indica il byte all'interno del file da cui la partizione inizia.
-    - Il campo BYTE DI FINE indica il byte all'interno del file in cui la partizione finisce.
+    - IL campo **FILE** indica a quale file appartiene la partizione. 
+    - Il campo **BYTE DI INIZIO** indica il byte all'interno del file da cui la partizione inizia.
+    - Il campo **BYTE DI FINE** indica il byte all'interno del file in cui la partizione finisce.
 
 Ogni processo riceve un numero variabile di partizioni di dimensioni diverse ma, ogni processo lavora su un totale di byte uguale a quello degli altri. La somma delle dimensioni delle partizioni ricevute sarà uguale per ogni processo. 
 
@@ -33,6 +33,16 @@ Ogni processo riceve un numero variabile di partizioni di dimensioni diverse ma,
 4. Le frequenze calcolate sono inviate dagli SLAVE al MASTER.
 
 5. IL MASTER riceve le frequenze da tutti gli altri processi unendole. Per concludere produce un file csv con all'interno il conteggio esatto delle parole. 
+
+## Struttura del progetto
+
+<img src="docs/struttura.png" alt="esempio gestione parola cross chunk" width = "30%" height = "30%">
+
+- la directory **docs** contiene tutte le immagini ed i file utili per la documentazione.
+- la directory **lib** contiene tutti gli header
+- la directory **src** contiene tutte i file .c, il makefile per la compilazione ed l'install.sh
+- le directory **parole** e **test** sono due directory utilizzate per il testing del programma durante la fase di sviluppo e durante le fasi successive.
+- lo scirpt **correctness.sh** è uno script utilizzato per provare la correttezza dell'applicativo. 
 
 ## Input del programma
 
@@ -47,11 +57,17 @@ Esempio :
 >curiosità di contarne i bottoni. Mio padre rise delle mie disposizioni alla matematica o alla
 >sartoria e non s’avvide che avevo le dita nel taschino del suo panciotto.
 
+## Output del programma
+
+L'output del programma sarà il file "output.txt" contenente la lista delle parole contate e il numero di volte che sono state contate.
+
+Per parola si intende una sequenza di massimo 46 caratteri terminata da uno spazio, un carriage return o un tab.
+
 ## Dettagli implementativi
 
-### Input del programma
+### Input
 
-Come già detto precedentemente il programma prende in input al momento dell'esecuzione come parametro una cartella contenente tutti i file sui quali deve essere effettuato il conteggio delle parole.
+Come già detto precedentemente il programma prende in input, al momento dell'esecuzione, come parametro una cartella contenente tutti i file sui quali deve essere effettuato il conteggio delle parole.
 La cartella deve contenere almeno un file altrimenti il programma mostrerà un messaggio d'errore.
 
 ### Divisione dei File
@@ -143,7 +159,7 @@ File_chunk * probe_recv_chunks(MPI_Datatype chunktype, MPI_Status Stat, int * ch
 ```
 Il processo SLAVE che riceve il messaggio non conosce la grandezza del buffer inviato, questa informazione è fondamentale per l'allocazione di un buffer di ricezione grande esattamente come quello inviato dal MASTER, in modo tale da non avere spreco di memoria.
 
-Per allocare con precisione ogni processo SLAVE:
+Per allocare con precisione, ogni processo SLAVE:
 
 1. Controlla il messaggio in arrivo, senza riceverlo effettivamente grazie alla funzione MPI_Probe (funzione bloccante).
 2. In base alle informazioni restituite dalla sonda nella variabile di stato, il processo può ottenere il numero di elementi presenti all'interno dell'array inviato.
@@ -286,30 +302,96 @@ La correttezza del programma è stata provata empiricamente fornendo in input al
 
 Per i file più grandi utilizzati per testare il programma per evitare un conteggio manuale delle parole ci si è serviti di un word counter online (https://wordcounter.net/).
 
-Per verifiare che aumentando il numero di processori utilizzati il programma non abbia comportamenti inaspettati, è stato realizzato lo script correctness.sh che esegue il programma prima con 2,5,10.15,20... e così via processori fino ad arrivare a 100. Lo script verifica che aumentando il numero di processori ò'output del programma non cambia.
+Per verifiare che aumentando il numero di processori utilizzati il programma non abbia comportamenti inaspettati, è stato realizzato lo script correctness.sh che esegue il programma prima con 2,5,10.15,20... e così via processori fino ad arrivare a 100. Lo script verifica che aumentando il numero di processori l'output del programma non cambi.
 
 
 
 ## Benchmarking
 
-I test per la valutazione della scalabilità sia forte che debole sono stati eseguiti su di un cluster di 6 macchine in Google Cloud dotate di 4 vCPU e 16GB di RAM.
-Per i test è stato utilizzata la cartella banchmark contenuta all'interno della cartella test
+I test per la valutazione della scalabilità sia forte che debole sono stati eseguiti su di un cluster di 6 macchine in Google Cloud e2-standard-4 dotate di 4 vCPU e 16GB di RAM.
+Di seguito sono riportati i dati in temrini di scalabilità forte e scalabilità debole:
 
 
+## Scalabilità forte
+
+Per ricavare i seguenti dati, si è fissato un input di 503Mb e utilizzato un numero crescente di processori ad ogni esecuzione. Per essere più precisi, i dati riportati fanno riferimento ad una media di tre esecuzioni per ogni variazione del numero di processori.
+
+| Num di processori | Tempo di esecuzione | Sppedup |
+|-------------------|---------------------|---------|
+| 1 (sequenziale)   | 38.720s             | 1       |
+| 2  worker         | 27.124s             | 1.43    |
+| 3  worker         | 19.764s              | 1.96    |
+| 4  worker         | 16.646s              | 2.33    |
+| 5  worker         | 12.825s              | 3.02    |
+| 6  worker         | 10.623s              | 3.64    |
+| 7  worker         | 8.999s               | 4.30    |
+| 8  worker         | 7.926s               | 4.89    |
+| 9  worker         | 7.014s               | 5.52    |
+| 10 worker         | 6.314s               | 6.13    |
+| 11 worker         | 5.680s               | 6.81    |
+| 12 worker         | 5.210s               | 7.43    |
+| 13 worker         | 4.793s               | 8.08    |
+| 14 worker         | 4.430s               | 8.74    |
+| 15 worker         | 4.223s               | 9.17    |
+| 16 worker         | 3.819s               | 10.14   |
+| 17 worker         | 3.642s               | 10.63   |
+| 18 worker         | 3.525s               | 10.98   |
+| 19 worker         | 3.534s               | 10.96   |
+| 20 worker         | 3.385s               | 11.44   |
+| 21 worker         | 3.364s               | 11.51   |
+| 22 worker         | 2.986s               | 12.97   |
+| 23 worker         | 2.776s               | 13.95   |
+
+<img src="docs/forteScal.png" alt="esempio gestione parola cross chunk" width = "50%" height = "50%">
+
+In questo grafico per numero di processi si intende il numero di processi worker in linea con la tabella riportata sopra.
+
+## Scalabilità debole
+
+Per ricavare i seguenti dati si è deciso che all'aggiunta di ogni processore la taglia dell'input sarebbe cresciuta di 16 Mb. Anche in questo caso i dati riportati fanno riferimento ad una media di tre esecuzioni per ogni variazione del numero di processori. 
+
+| Num di processori | Taglia input (Mb) | Tempo di esecuzione |
+|-------------------|---------------------|---------|
+| 1  worker          | 16                  | 1.243s  |
+| 2  worker         | 32                  | 1.980s  |
+| 3  worker         | 48                  | 2.053s  |
+| 4  worker         | 64                  | 2.084s  |
+| 5  worker         | 80                  | 2.053s  |
+| 6  worker         | 96                  | 2.054s  | 
+| 7  worker         | 112                 | 2.055s  |
+| 8  worker         | 128                 | 2.059s  |
+| 9  worker         | 144                 | 2.312s  |
+| 10 worker         | 160                 | 2.079s  |
+| 11 worker         | 176                 | 2.103s  |
+| 12 worker         | 192                 | 2.037s  |
+| 13 worker         | 208                 | 2.063s  |
+| 14 worker         | 224                 | 2.059s  |
+| 15 worker         | 240                 | 2.121s  |
+| 16 worker         | 256                 | 2.052s  |
+| 17 worker         | 272                 | 2.082s  |
+| 18 worker         | 288                 | 2.049s  |
+| 19 worker         | 304                 | 2.581s  |
+| 20 worker         | 320                 | 2.148s  |
+| 21 worker         | 336                 | 2.319s  |
+| 22 worker         | 352                 | 2.100s  |
+| 23 worker         | 368                 | 2.150s  |
+
+
+<img src="docs/deboleScal.png" alt="esempio gestione parola cross chunk" width = "50%" height = "50%">
 
 
 ## Manuale d'uso
 
 ### Compilazione
 
-Per poter compilare occorre prima installare alcune dipendenze, spostandosi all'interno della directory src ed eseguendo il comando:
+Per poter compilare occorre prima installare alcune dipendenze, spostandosi all'interno della directory **src** ed eseguendo il comando:
 
 ```
 ./install.sh
 ```
 Al termine dell'esecuzione di questo script, verrà installata la libreria libglib2.0 che implementa tutte le strutture dati utilizzate all'interno del progetto.
 
-Una volta installate le dipendenze è possibile compilare, all'interno della directory src del progetto basta digitare il comando: 
+Una volta installate le dipendenze è possibile compilare. All'interno della directory **src** del progetto basta digitare il comando: 
 ```
 make all
 ```
@@ -342,8 +424,41 @@ Il numero di processori che MPI utilizzerà per l'esecuzione.
 
 - HOSTFILE
 
-File all'interno del quale è specificato, per ogni macchina, l'indirizzo IP ed il numero di ....... .
+File all'interno del quale è specificato, per ogni macchina, l'indirizzo IP ed il numero di slots.
 
 - DIRECTORY
 
 La directory contenente tutti i file sui quali effettuare il conteggio delle parole. Questo parametro non può essere omesso.
+
+
+## Considerazioni finali
+
+### Prestazioni
+
+All'interno del capitolo dedicato al benchmarking, sono riportati i dati riguardanti le performance dell'applicativo. 
+
+Analizzando gli speedup calcolati e riportati all'interno della tabella, si può vedere come lo speedup sia influenzato negativamente dal fatto che in questa implementazione il master non lavori su nessuna porzione dei file. Infatti con 3 processi, ovvero con 2 worker ed i master lo speedup ideale dovrebbe essere 3 ma è solo 1.43.
+Per migliorare la soluzione si potrebbe modificare l'implementazione facendo in modo che nel momento in cui il master divide il lavoro, conservi una parte anche per se stesso. Questo scenario, in cui è anche il master a lavorare sui file, non è stato implementato perchè in nessun punto della traccia è esplicitato che il master debba lavorare sui file per il conteggio le parole. Ovviamente, modificare intoducendo questo cambiamento migliorerebbe di molto le prestazioni.
+
+Analizzando il grafico relativo alla scalabilità forte, si può notare un miglioramento in termini di tempi di esecuzione all'aumentare dei processi utilizzati.
+Il miglioramento delle prestazioni è notevole soprattutto durante i primi incrementi dei processori.
+Si può notare che a partire da 14 processori fino ad arrivare a 23, le prestazioni rimangono costanti e tendono quasi a peggiorare. Questo accade perchè con l'aumentare dei processori, aumenta la potenza di calcolo, i file vengono partizionati in porzioni più piccole, ma l'overhead dato dalle comunicazioni tra i vari processori diventa significativo in termini di calo delle performance.
+
+Infine, analizzando i dati relativi alla scalabilità debole, si può osservare il modo in cui il tempo di soluzione varia con il numero di processori per una dimensione fissa del problema per processore. Il grafico riportato evidenzia come il tempo di esecuzione rimanga costante. Si può concludere che questo succede anche perchè i dati in input sono partizionati in maniera molto equa tra i processori.
+
+## Alcune scelte implementative
+
+### NO MPI_PACK
+
+Nonostante sia una funzione molto interessante ho deciso di non utilizzarla. I motivi principali per i quali ho evitato di utilizzarla sono stati i seguenti : 
+
+1. L'utilizzo della pack avrebbe introdotto upper bound al numero di chunk da assegnare ad un worker oppure, per evitare l'upperbound si sarebbero dovute utilizzare numerose realloc() e questo sarebbe stato negativo in termini di prestazioni.
+
+2. Come scritto all'interno della documentazione, la pack è una funzione molto potente ma molto onerosa in quanto implica due copie all'interno di due buffer sia per il sender che per il receiver.
+
+Era stata implementata una soluzione contente l'invio e la ricezione dei chunk facendo utilizzo della pack, ma questa parte è stata modificata scegliendo la soluzione descritta nei capitoli precedenti.
+
+
+ <img src="docs/recv_unpack.png"  width = "50%" height = "50%">
+<img src="docs/send_pack.png"  width = "50%" height = "50%">
+
